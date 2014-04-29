@@ -44,16 +44,17 @@ function json(options){
       var first = buf.trim()[0];
 
       if (0 == buf.length) {
-        return next(error(400, 'invalid json, empty body'));
+        return next(error(400, 'invalid json, empty body', buf));
       }
 
-      if (strict && '{' != first && '[' != first) return next(error(400, 'invalid json'));
+      if (strict && '{' != first && '[' != first) return next(error(400, 'invalid json', buf));
       try {
         req.body = JSON.parse(buf, options.reviver);
       } catch (err){
-        err.body = buf;
-        err.status = 400;
-        return next(err);
+		  return next(error(400, err.message, buf));
+//        err.body = buf;
+//       err.status = 400;
+//        return next(err);
       }
       next();
     })
@@ -93,8 +94,9 @@ function urlencoded(options){
   }
 }
 
-function error(code, msg) {
+function error(code, msg, body) {
   var err = new Error(msg || http.STATUS_CODES[code]);
   err.status = code;
+  err.body = body;
   return err;
 }
